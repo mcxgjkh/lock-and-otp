@@ -8,6 +8,9 @@
       · 无相机权限 —— 不扫码，避免引入摄像头库与相应耗电。
     -->
 
+    <!-- 与「锁屏」同签名：系统无剪贴板时把内容交给它的剪贴板 -->
+    <uses-permission android:name="com.mcxgjkh.lockscreen.permission.CLIP" />
+
     <application
         android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"

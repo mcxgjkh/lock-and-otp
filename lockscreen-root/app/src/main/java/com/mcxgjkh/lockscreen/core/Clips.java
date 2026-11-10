@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Looper;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -36,7 +37,43 @@ public final class Clips {
     /** 最近一次剪贴板操作的错误（仅内存，供诊断页显示）。 */
     public static volatile String lastError = "";
 
+    /**
+     * 缓存的 ClipboardManager。
+     * 必须**在主线程**取：部分 ROM 的 ContextImpl 在创建它时会 new Handler()，
+     * 在无 Looper 的工作线程上调用会抛 "Can't create handler inside thread..."。
+     */
+    private static ClipboardManager sCM;
+    private static boolean sCMInit;
+
     private Clips() {
+    }
+
+    /** 进程启动时在主线程调用一次（LockApp.onCreate）。 */
+    public static void init(Context ctx) {
+        if (sCMInit) {
+            return;
+        }
+        sCMInit = true;
+        try {
+            sCM = (ClipboardManager) ctx.getApplicationContext()
+                    .getSystemService(Context.CLIPBOARD_SERVICE);
+            if (sCM == null) {
+                lastError = "init: ClipboardManager is null（系统没有剪贴板服务）";
+            }
+        } catch (Throwable t) {
+            lastError = "init: " + t.getClass().getSimpleName() + ": " + t.getMessage();
+        }
+    }
+
+    /** 取缓存的实例；工作线程上不再现场创建，没初始化就返回 null。 */
+    private static ClipboardManager cm(Context ctx) {
+        if (sCM != null) {
+            return sCM;
+        }
+        if (!sCMInit && Looper.myLooper() == Looper.getMainLooper()) {
+            init(ctx);
+        }
+        return sCM;
     }
 
     // ------------------------------------------------------------ 当前内容
@@ -57,6 +94,16 @@ public final class Clips {
         prefs(ctx).edit().putString(K_CURRENT, text).apply();
         addHistory(ctx, text);
         return writeSystem(ctx, text);
+    }
+
+    /** 只写本应用存储，不碰系统剪贴板（供同签名应用投递 / 无剪贴板服务的设备）。 */
+    public static void setLocal(Context ctx, String text) {
+        if (text == null) {
+            return;
+        }
+        prefs(ctx).edit().putString(K_CURRENT, text).apply();
+        addHistory(ctx, text);
+        noteCapture(ctx);
     }
 
     /**
@@ -170,8 +217,7 @@ public final class Clips {
 
     public static String readSystem(Context ctx) {
         try {
-            ClipboardManager cm =
-                    (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipboardManager cm = cm(ctx);
             if (cm == null) {
                 lastError = "read: ClipboardManager is null";
                 return "";
@@ -229,8 +275,7 @@ public final class Clips {
 
     public static boolean writeSystem(Context ctx, String text) {
         try {
-            ClipboardManager cm =
-                    (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+            ClipboardManager cm = cm(ctx);
             if (cm == null) {
                 lastError = "write: ClipboardManager is null";
                 return false;

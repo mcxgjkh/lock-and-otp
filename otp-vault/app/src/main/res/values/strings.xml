@@ -115,4 +115,5 @@
     <string name="fp_picker_fallback">系统没有文件选择器，已切换为内置选择器</string>
     <string name="fp_saved_at">已保存到 %1$s</string>
     <string name="fp_read_fail">读取文件失败</string>
+    <string name="copied_to_lock">已送入锁屏剪贴板\n用锁屏悬浮球的「粘贴」注入当前输入框</string>
 </resources>

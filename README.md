@@ -28,8 +28,8 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - `local.properties` 里的 `sdk.dir` 指向本机 SDK（`F:/AndroidSDK`），换机器时改成自己的路径。
 - `gradle.properties` 用 `org.gradle.java.home` 固定了 JDK 17；JDK 路径不同请改这一行。
 - 打包产物（已实测生成）：
-  - `lockscreen-root/app/build/outputs/apk/debug/app-debug.apk`（191 KB）
-  - `otp-vault/app/build/outputs/apk/debug/app-debug.apk`（84 KB）
+  - `lockscreen-root/app/build/outputs/apk/debug/app-debug.apk`（123 KB）
+  - `otp-vault/app/build/outputs/apk/debug/app-debug.apk`（83 KB）
 - 仓库内 `dist/` 已放这两份调试版 APK（`lockscreen-debug.apk`、`authenticator-debug.apk`，v1.1.0），
   不装 SDK 也能直接下载安装；升级用 `adb install -r`（同签名，数据保留）。
 - 两者均为调试签名，可直接 `adb install`；上架需自行配置 release 签名。
@@ -209,6 +209,17 @@ app/src/main/java/com/mcxgjkh/lockscreen/
   按 Home 可能短暂看到桌面，本应用会在 250ms 内把时钟层拉回（严格模式开启时）。
 - 设了时钟密码后，解锁需要按 ✓ 确认，不再按长度自动提交（两者长度可能不同）。
 - 时钟界面的「长按返回解锁」提示默认**不显示**（开关：主界面「时钟界面显示提示」）；长按时间照样有效。
+**实测：没有 ClipboardService 的 ROM（XTC_Z2y / 7.1.1 / 320x360）**
+- 诊断输出 `binder(clipboard)=null`：系统里根本没有剪贴板服务，**任何应用都复制不了**，
+  因此"接管"也就无从谈起（没有事件、没有存储）。这类设备只能改用注入：
+  内容存进本应用剪贴板 → 悬浮球「粘贴」用 `input text` 直接敲进当前输入框（ASCII）。
+- authenticator 的「复制」已适配：系统剪贴板写不进去时，通过**同签名 ContentProvider**
+  （`content://com.mcxgjkh.lockscreen.clip/current`，signature 级权限）把验证码送进锁屏的剪贴板，
+  再用悬浮球「粘贴」注入。两台应用必须同签名（同一个 debug keystore 构建即可）。
+- 无障碍同理：`rawSetting` 有服务但 `systemAccepted` 为空时，先看诊断里的
+  `binder(accessibility)` 是否为 null —— 为 null 说明系统没有无障碍管理器，
+  写设置永远不会生效，只能换 ROM 或走 Xposed 方案。
+
 - **无法真正"劫持" `ClipboardManager`**：别的应用调用的仍是系统剪贴板服务，要重定向必须做
   Xposed/LSPosed 模块改 `system_server`。本应用用的是"监听 + 回写 + Root 兜底"：
   别人复制 → 进本应用；本应用选中/复制 → 写回系统，两个方向的数据保持一致。
@@ -305,7 +316,7 @@ app/src/main/java/com/mcxgjkh/otpvault/
 | --- | --- | --- |
 | 真实构建 | Gradle 8.5 + AGP 8.3.2 + JDK 17 + SDK 34 | 两个 APK **BUILD SUCCESSFUL** |
 | APK 元数据 | `aapt2 dump badging` | 包名/应用名/minSdk 19/targetSdk 28/权限 全部符合 |
-| APK 体积 | — | 锁屏 191 KB，authenticator 84 KB（v1.1.0）
+| APK 体积 | — | 锁屏 123 KB，authenticator 83 KB（v1.1.0）
 | 静态检查 | `lintDebug` | 无 NewApi/MissingPermission 等功能性错误；仅 1 条 `ExpiredTargetSdkVersion` 策略提示 |
 | HOTP | RFC 4226 附录 D（计数器 0–9） | 10/10 |
 | TOTP | RFC 6238 附录 B（SHA1/256/512） | 8/8 |
@@ -341,7 +352,8 @@ app/src/main/java/com/mcxgjkh/otpvault/
 3.4 进入省电后重启手机：开机后 Wi-Fi/亮度/动画应自动回到进入前的状态，悬浮球模式为全能。
 4. 「无障碍服务管理」：默认列出声明了无障碍的服务；打开开关后若弹「设置已写入，但系统没有接受」，
    说明该服务本身不满足系统绑定条件（应用问题，不是开关问题），详细原因在弹窗底部。
-4.0 「诊断报告」：进去后等 10~20 秒（可能弹 Root 授权），把内容存文件后 `adb pull` 出来；排查剪贴板就靠它。
+4.0 「诊断报告」：进去后等 10~20 秒（可能弹 Root 授权），把内容存文件后 `adb pull` 出来。
+   重点看 `binder(clipboard)` / `binder(accessibility)`：为 null 就是系统缺服务，应用层无解。
    找不到某个无障碍应用时，勾选「显示全部应用的服务」——它应出现在列表里（可能标注"未声明无障碍权限"），
    或用「手动添加组件」直接写 `pkg/.Cls`。
 4.1 设「时钟密码」（须与主密码不同）→ 锁屏输时钟密码：应只看到大时钟，无悬浮球、无桌面；

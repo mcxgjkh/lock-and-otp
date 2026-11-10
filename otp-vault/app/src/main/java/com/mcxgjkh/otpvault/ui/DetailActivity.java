@@ -26,6 +26,7 @@ import com.mcxgjkh.otpvault.data.VaultStore;
 import com.mcxgjkh.otpvault.otp.Base32;
 import com.mcxgjkh.otpvault.otp.Otp;
 import com.mcxgjkh.otpvault.otp.OtpauthUri;
+import com.mcxgjkh.otpvault.util.ClipBridge;
 import com.mcxgjkh.otpvault.util.WatchUi;
 
 /**
@@ -353,6 +354,11 @@ public class DetailActivity extends Activity {
             err = t.getClass().getSimpleName() + ": " + t.getMessage();
         }
         if (!ok) {
+            // 系统剪贴板不可用：交给「锁屏」应用，由它的悬浮球注入
+            if (ClipBridge.push(this, text)) {
+                Toast.makeText(this, R.string.copied_to_lock, Toast.LENGTH_LONG).show();
+                return;
+            }
             showCopyFallback(text, err);
             return;
         }

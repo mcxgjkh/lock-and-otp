@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- 验证通过后解除系统锁屏（API19 仍生效的旧接口） -->
+    <!-- 同签名应用（authenticator）可写入本应用剪贴板；本机无 ClipboardService 时用它中转 -->
+    <permission
+        android:name="com.mcxgjkh.lockscreen.permission.CLIP"
+        android:protectionLevel="signature" />
+    <uses-permission android:name="com.mcxgjkh.lockscreen.permission.CLIP" />
+
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <!-- 错误抖动反馈 -->
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -18,6 +24,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
+        android:name=".LockApp"
         android:allowBackup="false"
         android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
@@ -64,6 +71,13 @@
         <activity
             android:name=".ui.AccessibilityActivity"
             android:exported="false" />
+
+        <provider
+            android:name=".ClipProvider"
+            android:authorities="com.mcxgjkh.lockscreen.clip"
+            android:exported="true"
+            android:readPermission="com.mcxgjkh.lockscreen.permission.CLIP"
+            android:writePermission="com.mcxgjkh.lockscreen.permission.CLIP" />
 
         <!-- 诊断：把 root / 剪贴板 / 无障碍的实际状态导出成文本 -->
         <activity

@@ -102,17 +102,14 @@ public class DiagnosticsActivity extends Activity {
         sb.append(probe.detail);
 
         // ---------- 剪贴板 ----------
+        sb.append("\n---- 系统服务 ----\n");
+        sb.append("serviceCount=").append(serviceCount()).append('\n');
+        sb.append("binder(clipboard)=").append(binderState("clipboard")).append('\n');
+        sb.append("binder(accessibility)=").append(binderState("accessibility")).append('\n');
+        sb.append("binder(input)=").append(binderState("input")).append('\n');
+        sb.append("binder(window)=").append(binderState("window")).append('\n');
+
         sb.append("\n---- 剪贴板 ----\n");
-        Object binder = null;
-        try {
-            Class<?> sm = Class.forName("android.os.ServiceManager");
-            binder = sm.getMethod("getService", String.class).invoke(null, "clipboard");
-        } catch (Throwable t) {
-            sb.append("ServiceManager: ").append(t.getClass().getSimpleName())
-                    .append(": ").append(t.getMessage()).append('\n');
-        }
-        sb.append("binder(clipboard)=").append(binder == null ? "null（系统没有该服务）" : "ok")
-                .append('\n');
 
         ClipboardManager cm = null;
         try {
@@ -129,6 +126,7 @@ public class DiagnosticsActivity extends Activity {
             }
         }
 
+        Clips.init(this);
         String current = Clips.readSystem(this);
         sb.append("readSystem len=").append(current.length())
                 .append("  lastError=").append(Clips.lastError).append('\n');
@@ -158,6 +156,20 @@ public class DiagnosticsActivity extends Activity {
             sb.append("detected=").append(listed)
                     .append("  allServices=").append(all)
                     .append("  enabled=").append(on).append('\n');
+            String flag = "";
+            try {
+                flag = Settings.Secure.getString(getContentResolver(), "accessibility_enabled");
+            } catch (Throwable ignored) {
+                // 读不到按空处理
+            }
+            sb.append("accessibility_enabled=").append(flag).append('\n');
+            for (AccessibilityTool.Item it : AccessibilityTool.list(this, false)) {
+                sb.append("  ").append(it.flatten)
+                        .append("  declared=").append(it.declared)
+                        .append("  recognized=").append(it.recognized)
+                        .append("  component=").append(componentState(it.flatten))
+                        .append('\n');
+            }
             Set<String> raw = AccessibilityTool.enabledSet(this);
             Set<String> sys = AccessibilityTool.systemEnabledSet(this);
             sb.append("rawSetting=").append(raw).append('\n');
@@ -169,6 +181,57 @@ public class DiagnosticsActivity extends Activity {
             sb.append("enumerate failed: ").append(t).append('\n');
         }
         return sb.toString();
+    }
+
+    private static Object binder(String name) {
+        try {
+            Class<?> sm = Class.forName("android.os.ServiceManager");
+            return sm.getMethod("getService", String.class).invoke(null, name);
+        } catch (Throwable t) {
+            return null;
+        }
+    }
+
+    private static String binderState(String name) {
+        try {
+            Class<?> sm = Class.forName("android.os.ServiceManager");
+            Object b = sm.getMethod("getService", String.class).invoke(null, name);
+            return b == null ? "null（系统没有该服务）" : "ok";
+        } catch (Throwable t) {
+            return "EX " + t.getClass().getSimpleName();
+        }
+    }
+
+    private static int serviceCount() {
+        try {
+            Class<?> sm = Class.forName("android.os.ServiceManager");
+            String[] all = (String[]) sm.getMethod("listServices").invoke(null);
+            return all == null ? -1 : all.length;
+        } catch (Throwable t) {
+            return -1;
+        }
+    }
+
+    /** 组件启用状态：0 默认 / 1 启用 / 2 禁用 / 3、4 被禁用 */
+    private String componentState(String flatten) {
+        try {
+            int slash = flatten.indexOf('/');
+            android.content.ComponentName cn = new android.content.ComponentName(
+                    flatten.substring(0, slash), flatten.substring(slash + 1));
+            int st = getPackageManager().getComponentEnabledSetting(cn);
+            switch (st) {
+                case 1:
+                    return "enabled";
+                case 2:
+                case 3:
+                case 4:
+                    return "DISABLED(" + st + ")";
+                default:
+                    return "default";
+            }
+        } catch (Throwable t) {
+            return "EX";
+        }
     }
 
     private String versionName() {

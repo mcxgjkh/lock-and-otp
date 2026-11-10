@@ -225,6 +225,15 @@ public final class AccessibilityTool {
             }
             sb.append(s);
         }
+        // 组件被禁用/冻结时系统不会绑定，先把目标组件启用
+        if (enabled) {
+            try {
+                RootShell.get().run("pm enable " + item.flatten);
+            } catch (Throwable ignored) {
+                // 没 root 就跳过，后面 writeOk/accepted 会如实反映
+            }
+        }
+
         // 顺序很重要：先写服务列表，再打开总开关
         boolean w1 = SecureSettings.put(ctx, KEY_ENABLED_SERVICES, sb.toString());
         boolean w2 = SecureSettings.put(ctx, KEY_ACCESSIBILITY_ENABLED, set.isEmpty() ? "0" : "1");
@@ -262,11 +271,21 @@ public final class AccessibilityTool {
             }
         }
 
+        String flag = "";
+        try {
+            flag = Settings.Secure.getString(ctx.getContentResolver(), KEY_ACCESSIBILITY_ENABLED);
+        } catch (Throwable ignored) {
+            // 读不到按空处理
+        }
+        boolean hasAms = hasSystemService("accessibility");
+
         StringBuilder d = new StringBuilder();
         d.append("target=").append(item.flatten).append('\n');
         d.append("declaredPermission=").append(item.declared)
                 .append("  recognized=").append(item.recognized).append('\n');
+        d.append("amsBinder=").append(hasAms ? "ok" : "null（系统无无障碍服务）").append('\n');
         d.append("putServices=").append(w1).append("  putEnabled=").append(w2).append('\n');
+        d.append("accessibility_enabled=").append(flag).append('\n');
         d.append("settingsAfter=").append(back == null ? "null" : back).append('\n');
         d.append("systemAccepted=").append(accepted);
         return new Result(written, accepted, d.toString());
@@ -311,6 +330,16 @@ public final class AccessibilityTool {
             cls = pkg + cls;
         }
         return pkg + "/" + cls;
+    }
+
+    /** 系统有没有注册某个 binder 服务（缺服务的 ROM 上，写设置再多也不会生效）。 */
+    public static boolean hasSystemService(String name) {
+        try {
+            Class<?> sm = Class.forName("android.os.ServiceManager");
+            return sm.getMethod("getService", String.class).invoke(null, name) != null;
+        } catch (Throwable t) {
+            return false;
+        }
     }
 
     // ---------------------------------------------------------------- internal
