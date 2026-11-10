@@ -1,0 +1,6 @@
+id=wbclip
+name=WB Clipboard Service
+version=v1.0
+versionCode=1
+author=mcxgjkh
+description=为缺少 ClipboardService 的 ROM 补一个剪贴板服务（只注册 binder，不修改系统分区）

@@ -242,7 +242,29 @@ app/src/main/java/com/mcxgjkh/lockscreen/
 
 ---
 
-## 三、应用二：authenticator（`otp-vault`）
+## 三、补系统缺失的剪贴板服务（Magisk 模块，可选）
+
+适用于 ROM 把 `ClipboardService` 裁掉的设备（实测 XTC_Z2y / 7.1.1）。模块只在
+`/data/adb/modules/` 下工作，**不修改 /system**、不 hook、不动 `system_server`。
+
+- 原理：root 启动 `app_process`，向 servicemanager 注册名为 `clipboard` 的 binder，
+  按设备实测的 `IClipboard` 事务号（1 set / 2 get / 3 desc / 4 has / 5,6 listener / 7 hasText）实现。
+- 关键坑：AIDL 可空 `Parcelable` 参数前面有一个 **presence int**，漏读会导致整段报文错位
+  （表现为 label 空、items=0、包名 null）。
+- 安全边界：服务已存在则直接退出；解析异常只返回空结果，不抛给调用方；删目录＋重启即彻底移除。
+- 目录：`magisk/wb-clipboard/`（`build.sh` 可重新生成 clip.jar）。
+
+```bash
+adb push magisk/wb-clipboard /data/local/tmp/
+adb shell "su -c 'cp -r /data/local/tmp/wb-clipboard /data/adb/modules/wbclip && chmod 755 /data/adb/modules/wbclip/*.sh'"
+adb reboot
+adb shell "service check clipboard"   # found 即生效
+```
+
+> 无障碍（`AccessibilityManagerService`）**不做**：它不是"注册个 binder"能替代的，
+> 需要完整实现 IAccessibilityManager 与事件分发，风险远高于收益。
+
+## 四、应用二：authenticator（`otp-vault`）
 
 ### 3.1 核心功能范围
 
