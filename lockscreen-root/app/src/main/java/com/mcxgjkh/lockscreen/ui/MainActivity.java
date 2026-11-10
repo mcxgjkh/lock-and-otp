@@ -90,6 +90,12 @@ public class MainActivity extends Activity {
                 checkRoot();
             }
         });
+        findViewById(R.id.btn_diag).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, DiagnosticsActivity.class));
+            }
+        });
         findViewById(R.id.btn_overlay).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -435,7 +441,7 @@ public class MainActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final boolean ok = RootShell.get().isRooted();
+                final RootShell.Probe probe = RootShell.get().probe();
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -443,7 +449,21 @@ public class MainActivity extends Activity {
                         if (isFinishing()) {
                             return;
                         }
-                        tvRoot.setText("Root：" + getString(ok ? R.string.s_root_ok : R.string.s_root_no));
+                        tvRoot.setText("Root：" + getString(probe.rooted
+                                ? R.string.s_root_ok : R.string.s_root_no)
+                                + (probe.rooted && probe.suPath != null
+                                ? "（" + probe.suPath + "）" : ""));
+                        // 点状态行看逐条探测记录
+                        tvRoot.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                new AlertDialog.Builder(MainActivity.this)
+                                        .setTitle(R.string.btn_check_root)
+                                        .setMessage(probe.detail)
+                                        .setPositiveButton(R.string.confirm, null)
+                                        .show();
+                            }
+                        });
                     }
                 });
             }

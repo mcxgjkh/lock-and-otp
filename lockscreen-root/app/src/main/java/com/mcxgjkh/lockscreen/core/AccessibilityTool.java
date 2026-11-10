@@ -142,6 +142,48 @@ public final class AccessibilityTool {
         return out;
     }
 
+    /** 开关结果：区分"写进设置"与"系统真的接受了"两件事。 */
+    public static final class Result {
+        public final boolean writeOk;
+        public final boolean accepted;
+        public final String detail;
+
+        Result(boolean writeOk, boolean accepted, String detail) {
+            this.writeOk = writeOk;
+            this.accepted = accepted;
+            this.detail = detail;
+        }
+    }
+
+    /**
+     * 系统"真的"启用了哪些服务 —— 以 AccessibilityManager 为准。
+     * 设置里写了不等于生效：服务未声明 BIND_ACCESSIBILITY_SERVICE、未导出、
+     * 或被 ROM 白名单拦下时，系统不会绑定它，设置项随后还会被系统改回去。
+     */
+    public static Set<String> systemEnabledSet(Context ctx) {
+        Set<String> out = new LinkedHashSet<String>();
+        try {
+            AccessibilityManager am =
+                    (AccessibilityManager) ctx.getSystemService(Context.ACCESSIBILITY_SERVICE);
+            List<AccessibilityServiceInfo> infos = am == null ? null
+                    : am.getEnabledAccessibilityServiceList(
+                    AccessibilityServiceInfo.FEEDBACK_ALL_MASK);
+            if (infos != null) {
+                for (AccessibilityServiceInfo info : infos) {
+                    if (info == null || info.getResolveInfo() == null
+                            || info.getResolveInfo().serviceInfo == null) {
+                        continue;
+                    }
+                    ServiceInfo si = info.getResolveInfo().serviceInfo;
+                    out.add(si.packageName + "/" + si.name);
+                }
+            }
+        } catch (Throwable ignored) {
+            // 无障碍服务不可用时按空集合处理
+        }
+        return out;
+    }
+
     public static Set<String> enabledSet(Context ctx) {
         Set<String> set = new LinkedHashSet<String>();
         String raw = null;
@@ -166,9 +208,9 @@ public final class AccessibilityTool {
         return enabledSet(ctx).contains(item.flatten);
     }
 
-    public static boolean setEnabled(Context ctx, Item item, boolean enabled) {
+    public static Result setEnabled(Context ctx, Item item, boolean enabled) {
         if (item == null) {
-            return false;
+            return new Result(false, false, "item=null");
         }
         Set<String> set = enabledSet(ctx);
         if (enabled) {
@@ -183,9 +225,51 @@ public final class AccessibilityTool {
             }
             sb.append(s);
         }
-        boolean ok = SecureSettings.put(ctx, KEY_ENABLED_SERVICES, sb.toString());
-        ok &= SecureSettings.put(ctx, KEY_ACCESSIBILITY_ENABLED, set.isEmpty() ? "0" : "1");
-        return ok;
+        // 顺序很重要：先写服务列表，再打开总开关
+        boolean w1 = SecureSettings.put(ctx, KEY_ENABLED_SERVICES, sb.toString());
+        boolean w2 = SecureSettings.put(ctx, KEY_ACCESSIBILITY_ENABLED, set.isEmpty() ? "0" : "1");
+
+        // 读回：写命令 exit 0 不代表真的落盘（权限不足时 settings 命令也可能静默失败）
+        String back = "";
+        try {
+            back = Settings.Secure.getString(ctx.getContentResolver(), KEY_ENABLED_SERVICES);
+        } catch (Throwable ignored) {
+            // 读不到按空处理
+        }
+        Set<String> afterWrite = new LinkedHashSet<String>();
+        if (back != null && back.length() > 0) {
+            for (String part : back.split(":")) {
+                String n = normalize(part);
+                if (n.length() > 0) {
+                    afterWrite.add(n);
+                }
+            }
+        }
+        boolean written = afterWrite.contains(item.flatten) == enabled;
+
+        // 系统是否接受：绑定是异步的，最多等 1.2s
+        boolean accepted = false;
+        for (int i = 0; i < 4; i++) {
+            accepted = systemEnabledSet(ctx).contains(item.flatten) == enabled;
+            if (accepted) {
+                break;
+            }
+            try {
+                Thread.sleep(300L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+        }
+
+        StringBuilder d = new StringBuilder();
+        d.append("target=").append(item.flatten).append('\n');
+        d.append("declaredPermission=").append(item.declared)
+                .append("  recognized=").append(item.recognized).append('\n');
+        d.append("putServices=").append(w1).append("  putEnabled=").append(w2).append('\n');
+        d.append("settingsAfter=").append(back == null ? "null" : back).append('\n');
+        d.append("systemAccepted=").append(accepted);
+        return new Result(written, accepted, d.toString());
     }
 
     /** 手工输入的组件名 → Item；格式非法时返回 null。 */

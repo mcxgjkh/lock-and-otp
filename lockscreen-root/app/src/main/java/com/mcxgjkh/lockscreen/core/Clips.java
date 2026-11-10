@@ -33,6 +33,9 @@ public final class Clips {
     private static final int MAX_HISTORY = 30;
     private static final int MAX_INPUT_CHARS = 200;
 
+    /** 最近一次剪贴板操作的错误（仅内存，供诊断页显示）。 */
+    public static volatile String lastError = "";
+
     private Clips() {
     }
 
@@ -169,7 +172,11 @@ public final class Clips {
         try {
             ClipboardManager cm =
                     (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
-            if (cm == null || !cm.hasPrimaryClip()) {
+            if (cm == null) {
+                lastError = "read: ClipboardManager is null";
+                return "";
+            }
+            if (!cm.hasPrimaryClip()) {
                 return "";
             }
             ClipData clip = cm.getPrimaryClip();
@@ -180,6 +187,7 @@ public final class Clips {
             return cs == null ? "" : cs.toString();
         } catch (Throwable t) {
             // Android 10+ 后台读剪贴板会返回 null / 抛异常，都按空处理
+            lastError = "read: " + t.getClass().getSimpleName() + ": " + t.getMessage();
             return "";
         }
     }
@@ -224,11 +232,13 @@ public final class Clips {
             ClipboardManager cm =
                     (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm == null) {
+                lastError = "write: ClipboardManager is null";
                 return false;
             }
             cm.setPrimaryClip(ClipData.newPlainText("lockscreen", text == null ? "" : text));
             return true;
         } catch (Throwable t) {
+            lastError = "write: " + t.getClass().getSimpleName() + ": " + t.getMessage();
             Log.w(TAG, "write clipboard failed: " + t.getMessage());
         }
         // 普通通道写不进去（ROM 限制）：以 system 身份再写一次

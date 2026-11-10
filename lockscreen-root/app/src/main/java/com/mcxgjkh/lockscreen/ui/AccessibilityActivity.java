@@ -45,6 +45,7 @@ public class AccessibilityActivity extends Activity {
     private Adapter adapter;
     private final List<AccessibilityTool.Item> items = new ArrayList<AccessibilityTool.Item>();
     private final Set<String> enabled = new HashSet<String>();
+    private final Set<String> systemEnabled = new HashSet<String>();
     private boolean showAll;
     private volatile boolean applying;
 
@@ -107,6 +108,8 @@ public class AccessibilityActivity extends Activity {
         items.addAll(AccessibilityTool.list(this, showAll));
         enabled.clear();
         enabled.addAll(AccessibilityTool.enabledSet(this));
+        systemEnabled.clear();
+        systemEnabled.addAll(AccessibilityTool.systemEnabledSet(this));
         adapter.notifyDataSetChanged();
         int on = 0;
         for (AccessibilityTool.Item it : items) {
@@ -162,15 +165,22 @@ public class AccessibilityActivity extends Activity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final boolean ok = AccessibilityTool.setEnabled(
+                final AccessibilityTool.Result result = AccessibilityTool.setEnabled(
                         getApplicationContext(), item, target);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         applying = false;
-                        if (!ok) {
+                        if (!result.writeOk) {
                             Toast.makeText(AccessibilityActivity.this,
                                     R.string.acc_apply_failed, Toast.LENGTH_LONG).show();
+                        } else if (!result.accepted) {
+                            new AlertDialog.Builder(AccessibilityActivity.this)
+                                    .setTitle(R.string.acc_not_accepted_title)
+                                    .setMessage(getString(R.string.acc_not_accepted_msg,
+                                            result.detail))
+                                    .setPositiveButton(R.string.confirm, null)
+                                    .show();
                         }
                         // 系统写入后需要一点时间刷新缓存
                         listView.postDelayed(new Runnable() {
@@ -252,7 +262,11 @@ public class AccessibilityActivity extends Activity {
             CheckBox cb = (CheckBox) row.findViewById(R.id.cb);
             label.setText(item.label);
             StringBuilder sub = new StringBuilder(item.pkg);
-            if (!item.declared) {
+            boolean rawOn = enabled.contains(item.flatten);
+            boolean realOn = systemEnabled.contains(item.flatten);
+            if (rawOn && !realOn) {
+                sub.append(" · ").append(getString(R.string.acc_pending));
+            } else if (!item.declared) {
                 sub.append(" · 未声明无障碍权限");
             } else if (!item.recognized) {
                 sub.append(" · 系统未识别");

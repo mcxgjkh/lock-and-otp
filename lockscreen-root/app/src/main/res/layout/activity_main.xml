@@ -71,6 +71,12 @@
             android:text="@string/cb_fast_keys" />
 
         <Button
+            android:id="@+id/btn_diag"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_diag" />
+
+        <Button
             android:id="@+id/btn_check_root"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

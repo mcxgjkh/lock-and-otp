@@ -165,4 +165,14 @@
     <string name="acc_manual_bad">组件名格式不对，应形如 com.example.app/.Service</string>
     <string name="acc_manual_done">已写入组件</string>
     <string name="acc_count">共 %1$d 个服务，已启用 %2$d 个</string>
+    <string name="btn_diag">诊断报告</string>
+    <string name="diag_title">诊断</string>
+    <string name="diag_running">检测中…（首次可能弹出 Root 授权，请允许）</string>
+    <string name="diag_refresh">重新检测</string>
+    <string name="diag_save">保存到文件</string>
+    <string name="diag_saved">已保存：%1$s</string>
+    <string name="diag_save_fail">保存失败：外部存储不可用</string>
+    <string name="acc_not_accepted_title">设置已写入，但系统没有接受</string>
+    <string name="acc_not_accepted_msg">设置项已经写进去，但系统的无障碍管理器没有把这个服务加入已启用列表，所以目标应用自己检测不到权限。\n\n常见原因：\n1) 该服务没声明 BIND_ACCESSIBILITY_SERVICE；\n2) 该服务未导出（exported=false）；\n3) ROM 有自己的无障碍白名单；\n4) 它不是标准 AccessibilityService。\n\n可以先重启设备再看；仍然不行就只能换该应用的版本。\n\n—— 详细 ——\n%1$s</string>
+    <string name="acc_pending">已写入·系统未启用</string>
 </resources>

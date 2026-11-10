@@ -28,10 +28,10 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - `local.properties` 里的 `sdk.dir` 指向本机 SDK（`F:/AndroidSDK`），换机器时改成自己的路径。
 - `gradle.properties` 用 `org.gradle.java.home` 固定了 JDK 17；JDK 路径不同请改这一行。
 - 打包产物（已实测生成）：
-  - `lockscreen-root/app/build/outputs/apk/debug/app-debug.apk`（214 KB）
-  - `otp-vault/app/build/outputs/apk/debug/app-debug.apk`（101 KB）
-- 仓库内 `dist/` 已放这两份调试版 APK（`lockscreen-1.0.0-debug.apk`、`authenticator-1.0.0-debug.apk`），
-  不装 SDK 也能直接下载安装。
+  - `lockscreen-root/app/build/outputs/apk/debug/app-debug.apk`（191 KB）
+  - `otp-vault/app/build/outputs/apk/debug/app-debug.apk`（84 KB）
+- 仓库内 `dist/` 已放这两份调试版 APK（`lockscreen-debug.apk`、`authenticator-debug.apk`，v1.1.0），
+  不装 SDK 也能直接下载安装；升级用 `adb install -r`（同签名，数据保留）。
 - 两者均为调试签名，可直接 `adb install`；上架需自行配置 release 签名。
 - `targetSdk 28` 是刻意的：保留 Android 4.4 时代的运行时语义。lint 会提示
   `ExpiredTargetSdkVersion`（Google Play 要求 33+），这是策略提示而非代码问题。
@@ -53,6 +53,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 | **系统级超级省电** | 一键：电池省电模式 + 关 Wi-Fi/蓝牙/移动数据 + `am kill-all` 清后台 + 降亮度 + 关动画；退出按快照还原，**重启后自动还原** |
 | **极速按键** | 常驻 root 注入器（`app_process` + `InputManager.injectInputEvent`）替代 `input keyevent`，返回/主页从 0.5–1.5s 降到毫秒级；不支持时自动回退 |
 | **接管剪贴板** | 三层捕获（事件回调 + 亮屏轮询 + Root 通道）收进**所有应用**的复制内容；打开剪贴板页会主动同步一次；悬浮球「粘贴」用 Ctrl+V 注入 |
+| **诊断报告** | 一键把 Root（逐条 su 路径与输出）、剪贴板服务/写入读回、ClipTool 原始返回、监控计数、无障碍统计打成文本，可存 `/sdcard/Android/data/.../diag.txt` |
 | 触发入口 | 桌面 1×1 小组件、应用内“立即锁屏”、可选通知栏按钮 |
 | 防暴力 | 5 次失败后指数退避（30s→30min），计数落盘不可强杀重置 |
 | 防绕过 | 屏蔽返回/菜单键、`FLAG_SECURE` 防截屏、严格模式切走自动重拉 |
@@ -141,6 +142,10 @@ app/src/main/java/com/mcxgjkh/lockscreen/
   2. `AccessibilityManager.getInstalledAccessibilityServiceList()` —— 系统已识别，标记 `recognized`；
   3. 勾选「显示全部应用的服务」时枚举**所有已安装应用的所有服务**，用于极端情况。
 - 未声明 `BIND_ACCESSIBILITY_SERVICE` 的组件会标出来并二次确认：系统会拒绝绑定，写入通常不生效。
+- 开关后做**双重校验**：读回 `enabled_accessibility_services` 确认写进去了，再用
+  `AccessibilityManager.getEnabledAccessibilityServiceList()` 确认系统真的接受了；
+  只写进去但系统没绑定（服务未导出 / 未声明权限 / ROM 白名单）时会弹窗说明原因，
+  列表里标成「已写入·系统未启用」，不再假装成功。
 - 还提供「手动添加组件」，直接输入 `pkg/.Cls`，组件名走字符白名单 + 存在性校验。
 - 开关：读写 `Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES` 与 `ACCESSIBILITY_ENABLED`，
   与系统设置页完全等价；组件统一规范成 `pkg/full.Cls`，避免 `.Service` 简写与全名重复。
@@ -237,7 +242,7 @@ app/src/main/java/com/mcxgjkh/lockscreen/
 | 实时验证码 | 列表显示验证码 + 倒计时，剩余 ≤5s 变橙 |
 | 查看原始密钥 | 详情页默认打码，点“显示密钥”才展示；可复制（30s 后自动清空剪贴板） |
 | **算法/位数判断** | 详情页显示「类型 · 算法 · 位数 · 周期」；「试算三种算法」同屏给出 SHA1/256/512 的验证码，哪行对得上就是哪个 |
-| 一键导出全部 | **始终导出一个 JSON 文件**（含账户名、发行方、密钥、类型、算法、位数、周期、计数器，以及每条的 otpauth 链接）；无文件选择器时退回剪贴板 |
+| 一键导出全部 | **始终导出一个 JSON 文件**（含账户名、发行方、密钥、类型、算法、位数、周期、计数器，以及每条的 otpauth 链接）；系统无 DocumentsUI 时自动切**内置文件选择器** |
 | 导入 | ① 从 JSON 文件导入（本应用导出格式 / 裸数组 / 单对象 / 混排 URI 均可）② 从 `otpauth://` 链接导入（支持多行批量）；也支持手动录入 |
 | 应用锁 | 可选 4–8 位访问 PIN（PBKDF2 哈希） |
 | 手表适配 | 方屏/圆屏/极小屏；极小屏底部提供“添加/导入/导出/设置”按钮条（手表没有菜单键） |
@@ -300,7 +305,7 @@ app/src/main/java/com/mcxgjkh/otpvault/
 | --- | --- | --- |
 | 真实构建 | Gradle 8.5 + AGP 8.3.2 + JDK 17 + SDK 34 | 两个 APK **BUILD SUCCESSFUL** |
 | APK 元数据 | `aapt2 dump badging` | 包名/应用名/minSdk 19/targetSdk 28/权限 全部符合 |
-| APK 体积 | — | 锁屏 214 KB，authenticator 101 KB |
+| APK 体积 | — | 锁屏 191 KB，authenticator 84 KB（v1.1.0）
 | 静态检查 | `lintDebug` | 无 NewApi/MissingPermission 等功能性错误；仅 1 条 `ExpiredTargetSdkVersion` 策略提示 |
 | HOTP | RFC 4226 附录 D（计数器 0–9） | 10/10 |
 | TOTP | RFC 6238 附录 B（SHA1/256/512） | 8/8 |
@@ -334,7 +339,9 @@ app/src/main/java/com/mcxgjkh/otpvault/
 3.2 点通知栏「恢复」：网络回到进入前的状态、亮度与动画还原，悬浮球恢复全能模式。
 3.3 不带 Root 时切省电：应提示“需要 Root”，且模式自动退回全能。
 3.4 进入省电后重启手机：开机后 Wi-Fi/亮度/动画应自动回到进入前的状态，悬浮球模式为全能。
-4. 「无障碍服务管理」：默认列出声明了无障碍的服务；打开开关后系统设置页应同步为开启。
+4. 「无障碍服务管理」：默认列出声明了无障碍的服务；打开开关后若弹「设置已写入，但系统没有接受」，
+   说明该服务本身不满足系统绑定条件（应用问题，不是开关问题），详细原因在弹窗底部。
+4.0 「诊断报告」：进去后等 10~20 秒（可能弹 Root 授权），把内容存文件后 `adb pull` 出来；排查剪贴板就靠它。
    找不到某个无障碍应用时，勾选「显示全部应用的服务」——它应出现在列表里（可能标注"未声明无障碍权限"），
    或用「手动添加组件」直接写 `pkg/.Cls`。
 4.1 设「时钟密码」（须与主密码不同）→ 锁屏输时钟密码：应只看到大时钟，无悬浮球、无桌面；
@@ -351,7 +358,8 @@ app/src/main/java/com/mcxgjkh/otpvault/
 **authenticator**
 1. 粘贴一个真实 `otpauth://totp/...` 导入，验证码应与服务端一致。
 2. 详情页“显示密钥”→ 复制 → 30s 后剪贴板自动清空。
-3. 导出 → 生成 `otpvault-*.json`，用文本编辑器核对字段；手表上导出应提示“已复制到剪贴板”。
+3. 导出 → 生成 `otpvault-*.json`，用文本编辑器核对字段；没有 DocumentsUI 的设备会弹出内置选择器，
+   文件默认写到 `/sdcard/Android/data/com.mcxgjkh.otpvault/files/`（`adb pull` 或文件管理器可取）。
 3.1 导入 → 选「从 JSON 文件导入」挑刚导出的文件，账户应全部回来（重复条目自动跳过）。
 3.2 导入 → 选「从 otpauth 链接导入」粘贴一条新链接，应新增 1 条。
 4. 手表：列表应为纵向布局（验证码独占一行），底部四个按钮可完成添加/导入/导出/设置。

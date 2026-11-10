@@ -48,6 +48,12 @@ public final class ClipRoot {
         return null;
     }
 
+    /** 诊断用：返回 ClipTool 的原始输出（含 ERR 原因）。 */
+    public static String rawProbe(Context ctx) {
+        String line = run(ctx, "get", null);
+        return line == null ? "null(超时或未授权)" : line;
+    }
+
     /** 以 system 身份写入剪贴板。 */
     public static boolean write(Context ctx, String text) {
         if (text == null) {

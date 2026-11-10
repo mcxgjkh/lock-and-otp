@@ -35,6 +35,10 @@
             android:windowSoftInputMode="adjustResize" />
 
         <activity
+            android:name=".ui.FilePickerActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.PinActivity"
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden" />

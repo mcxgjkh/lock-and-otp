@@ -36,6 +36,9 @@ import com.mcxgjkh.otpvault.util.WatchUi;
 import com.mcxgjkh.otpvault.util.ImportHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
@@ -58,6 +61,8 @@ public class MainActivity extends Activity {
     private static final int REQ_PIN = 101;
     private static final int REQ_EXPORT = 102;
     private static final int REQ_IMPORT_FILE = 103;
+    private static final int REQ_EXPORT_LOCAL = 104;
+    private static final int REQ_IMPORT_LOCAL = 105;
 
     private ListView listView;
     private TextView emptyView;
@@ -283,7 +288,7 @@ public class MainActivity extends Activity {
         try {
             startActivityForResult(i, REQ_IMPORT_FILE);
         } catch (Exception e) {
-            Toast.makeText(this, R.string.import_no_picker, Toast.LENGTH_LONG).show();
+            startLocalPicker(FilePickerActivity.MODE_LOAD, null, REQ_IMPORT_LOCAL);
         }
     }
 
@@ -410,10 +415,9 @@ public class MainActivity extends Activity {
         try {
             startActivityForResult(i, REQ_EXPORT);
         } catch (Exception e) {
-            // 手表通常没有 DocumentsUI：退回剪贴板，保证"一键导出"仍可用
-            copyToClipboard(ExportHelper.build(VaultStore.get(this).all(),
-                    ExportHelper.FMT_JSON));
-            Toast.makeText(this, R.string.export_no_picker, Toast.LENGTH_LONG).show();
+            // 手表通常没有 DocumentsUI：切到内置选择器，仍写成文件
+            startLocalPicker(FilePickerActivity.MODE_SAVE,
+                    ExportHelper.fileName(ExportHelper.FMT_JSON), REQ_EXPORT_LOCAL);
         }
     }
 
@@ -429,6 +433,18 @@ public class MainActivity extends Activity {
         if (requestCode == REQ_IMPORT_FILE) {
             if (resultCode == RESULT_OK && data != null && data.getData() != null) {
                 importFromFile(data.getData());
+            }
+            return;
+        }
+        if (requestCode == REQ_EXPORT_LOCAL) {
+            if (resultCode == RESULT_OK && data != null) {
+                writeExportToPath(data.getStringExtra(FilePickerActivity.EXTRA_PATH));
+            }
+            return;
+        }
+        if (requestCode == REQ_IMPORT_LOCAL) {
+            if (resultCode == RESULT_OK && data != null) {
+                importFromPath(data.getStringExtra(FilePickerActivity.EXTRA_PATH));
             }
             return;
         }
@@ -466,6 +482,79 @@ public class MainActivity extends Activity {
             if (os != null) {
                 try {
                     os.close();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    /** 系统没有 DocumentsUI 时用内置选择器；这里不吞异常，真起不来就提示。 */
+    private void startLocalPicker(int mode, String name, int req) {
+        Toast.makeText(this, R.string.fp_picker_fallback, Toast.LENGTH_LONG).show();
+        Intent i = new Intent(this, FilePickerActivity.class);
+        i.putExtra(FilePickerActivity.EXTRA_MODE, mode);
+        if (name != null) {
+            i.putExtra(FilePickerActivity.EXTRA_NAME, name);
+        }
+        try {
+            startActivityForResult(i, req);
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.export_fail, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void writeExportToPath(String path) {
+        if (path == null) {
+            return;
+        }
+        FileOutputStream fos = null;
+        try {
+            String text = ExportHelper.build(VaultStore.get(this).all(), ExportHelper.FMT_JSON);
+            fos = new FileOutputStream(new File(path));
+            fos.write(text.getBytes("UTF-8"));
+            fos.flush();
+            Toast.makeText(this, getString(R.string.fp_saved_at, path),
+                    Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.export_fail, Toast.LENGTH_SHORT).show();
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    private void importFromPath(String path) {
+        if (path == null) {
+            return;
+        }
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(new File(path));
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buf = new byte[8192];
+            int n;
+            while ((n = fis.read(buf)) > 0) {
+                bos.write(buf, 0, n);
+                if (bos.size() > 2 * 1024 * 1024) {
+                    throw new IllegalStateException("too large");
+                }
+            }
+            String text = new String(bos.toByteArray(), "UTF-8");
+            if (ImportHelper.isMigration(text)) {
+                Toast.makeText(this, R.string.import_migration, Toast.LENGTH_LONG).show();
+                return;
+            }
+            importAccounts(ImportHelper.parse(text));
+        } catch (Exception e) {
+            Toast.makeText(this, R.string.fp_read_fail, Toast.LENGTH_LONG).show();
+        } finally {
+            if (fis != null) {
+                try {
+                    fis.close();
                 } catch (Exception ignored) {
                 }
             }

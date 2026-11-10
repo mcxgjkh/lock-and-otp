@@ -102,4 +102,17 @@
     <string name="import_migration">检测到 Google Authenticator 迁移包，暂不支持，请改用 otpauth 链接</string>
     <string name="export_to_file">导出 JSON 文件</string>
     <string name="export_json_msg">将把 %1$d 个账户导出为一个 JSON 文件。</string>
+    <string name="copy_failed_title">系统剪贴板不可用</string>
+    <string name="copy_failed_msg">写入后读回校验失败（%1$s）。\n这台设备的系统剪贴板服务可能已被裁剪，任何应用都无法复制。\n下面是本次要复制的内容，可长按选中：</string>
+    <string name="fp_save">保存</string>
+    <string name="fp_open">打开</string>
+    <string name="fp_up">上级</string>
+    <string name="fp_top">已到可访问的顶层目录</string>
+    <string name="fp_pick_file">点列表里的文件即可打开</string>
+    <string name="fp_name_hint">文件名（自动补 .json）</string>
+    <string name="fp_name_empty">请输入文件名</string>
+    <string name="fp_name_bad">文件名不能包含 / \\ 或 ..</string>
+    <string name="fp_picker_fallback">系统没有文件选择器，已切换为内置选择器</string>
+    <string name="fp_saved_at">已保存到 %1$s</string>
+    <string name="fp_read_fail">读取文件失败</string>
 </resources>

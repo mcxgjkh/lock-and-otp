@@ -56,10 +56,15 @@ public final class RootShell {
             "/su/bin/su",
             "/system/sbin/su",
             "/vendor/bin/su",
-            "/debug_ramdisk/su"
+            "/debug_ramdisk/su",
+            "/data/adb/magisk/su",
+            "/system_ext/bin/su",
+            "/odm/bin/su"
     };
 
     private static RootShell sInstance;
+    /** probe() 成功时记下真正能用的 su，后续 suBinary() 直接复用。 */
+    private static volatile String sKnownSu;
 
     private final ReentrantLock lock = new ReentrantLock();
     private final LinkedBlockingQueue<String> lines = new LinkedBlockingQueue<String>();
@@ -92,22 +97,109 @@ public final class RootShell {
         return sInstance;
     }
 
-    /** 一次性探测，不复用会话。阻塞，需在工作线程调用。 */
+    /** 探测结果：rooted 之外还带上逐条尝试记录，便于定位"为什么没 root"。 */
+    public static final class Probe {
+        public final boolean rooted;
+        public final String suPath;
+        public final String detail;
+
+        Probe(boolean rooted, String suPath, String detail) {
+            this.rooted = rooted;
+            this.suPath = suPath;
+            this.detail = detail;
+        }
+    }
+
+    /**
+     * 一次性探测，不复用会话。阻塞，需在工作线程调用。
+     *
+     * 不再只试一个路径：不同 root 方案把 su 放在不同位置，而且 SELinux 会让
+     * File.canExecute() 返回 false（access() 也受 LSM 约束），所以"能执行"不可靠，
+     * 必须以真正跑一次 `id` 的输出为准。最多试 3 条，避免连续弹授权框。
+     */
+    public Probe probe() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("SDK=").append(Build.VERSION.SDK_INT)
+                .append("  ABI=").append(Build.CPU_ABI)
+                .append("  model=").append(Build.MODEL).append('\n');
+        sb.append("PATH=").append(System.getenv("PATH")).append('\n');
+
+        java.util.List<String> order = new java.util.ArrayList<String>();
+        for (String path : SU_CANDIDATES) {
+            File f = new File(path);
+            boolean exists = false;
+            boolean exec = false;
+            try {
+                exists = f.exists();
+                exec = f.canExecute();
+            } catch (Exception ignored) {
+                // 个别 ROM 的 stat 会抛
+            }
+            sb.append("  ").append(path)
+                    .append("  exist=").append(exists)
+                    .append(" exec=").append(exec).append('\n');
+            if (exists) {
+                order.add(path);
+            }
+        }
+        if (sKnownSu != null && !order.contains(sKnownSu)) {
+            order.add(0, sKnownSu);
+        }
+        // 交给 PATH 解析，覆盖"装在 /system/bin 但不在候选表"的情况
+        order.add("su");
+
+        int tried = 0;
+        for (String su : order) {
+            if (tried >= 3) {
+                break;
+            }
+            tried++;
+            long t0 = System.currentTimeMillis();
+            String out = runOnce(15000L, su, "-c", "id");
+            long cost = System.currentTimeMillis() - t0;
+            sb.append("try ").append(su).append(" (").append(cost).append("ms) -> ")
+                    .append(out == null ? "TIMEOUT" : out.trim().replace('\n', '|'))
+                    .append('\n');
+            if (out != null && out.contains("uid=0")) {
+                sKnownSu = su;
+                return new Probe(true, su, sb.toString());
+            }
+        }
+
+        // 最后用 shell 再走一次：有些 su 只在 login shell 的 PATH 里
+        String sh = runOnce(8000L, "/system/bin/sh", "-c", "su -c id");
+        sb.append("try sh -c 'su -c id' -> ")
+                .append(sh == null ? "TIMEOUT" : sh.trim().replace('\n', '|'))
+                .append('\n');
+        if (sh != null && sh.contains("uid=0")) {
+            sKnownSu = "su";
+            return new Probe(true, "su", sb.toString());
+        }
+        return new Probe(false, null, sb.toString());
+    }
+
+    /** 兼容旧调用：只要布尔结果。 */
     public boolean isRooted() {
+        return probe().rooted;
+    }
+
+    private static String runOnce(long timeoutMs, String... cmd) {
         Process p = null;
         try {
-            p = new ProcessBuilder(suPath(), "-c", "id").redirectErrorStream(true).start();
-            if (!awaitExit(p, 6000L)) {
-                return false;
+            p = new ProcessBuilder(cmd).redirectErrorStream(true).start();
+            if (!awaitExit(p, timeoutMs)) {
+                return null;
             }
-            String outText = readAll(p.getInputStream());
-            return outText != null && outText.contains("uid=0");
+            return readAll(p.getInputStream());
         } catch (Exception e) {
-            Log.w(TAG, "probe failed: " + e.getMessage());
-            return false;
+            return "EX " + e.getClass().getSimpleName() + ": " + e.getMessage();
         } finally {
             if (p != null) {
-                p.destroy();
+                try {
+                    p.destroy();
+                } catch (Exception ignored) {
+                    // 已退出
+                }
             }
         }
     }
@@ -431,12 +523,27 @@ public final class RootShell {
     }
 
     private static String suPath() {
+        if (sKnownSu != null) {
+            return sKnownSu;
+        }
         for (String path : SU_CANDIDATES) {
             try {
-                if (new File(path).canExecute()) {
+                File f = new File(path);
+                if (f.exists() && f.canExecute()) {
                     return path;
                 }
             } catch (Exception ignored) {
+                // 忽略
+            }
+        }
+        // SELinux 可能让 canExecute() 误报 false，存在就先试它
+        for (String path : SU_CANDIDATES) {
+            try {
+                if (new File(path).exists()) {
+                    return path;
+                }
+            } catch (Exception ignored) {
+                // 忽略
             }
         }
         return "su";

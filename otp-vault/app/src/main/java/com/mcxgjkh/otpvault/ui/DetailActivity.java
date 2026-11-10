@@ -322,17 +322,64 @@ public class DetailActivity extends Activity {
         return Otp.generate(key, counter, account.digits, account.algorithm);
     }
 
+    /**
+     * 写剪贴板并**读回校验**：部分精简 ROM 的剪贴板服务是空的，
+     * setPrimaryClip 不抛异常但什么都没写进去，必须校验才能给出真实反馈。
+     */
     private void copy(String text) {
-        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        if (cm == null) {
+        if (text == null || text.length() == 0) {
             return;
         }
-        cm.setPrimaryClip(ClipData.newPlainText("OtpVault", text));
+        String err = "";
+        boolean ok = false;
+        try {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm == null) {
+                err = "ClipboardManager=null";
+            } else {
+                cm.setPrimaryClip(ClipData.newPlainText("OtpVault", text));
+                ClipData back = cm.getPrimaryClip();
+                if (back == null || back.getItemCount() == 0) {
+                    err = "读回为空";
+                } else {
+                    CharSequence cs = back.getItemAt(0).coerceToText(this);
+                    ok = cs != null && text.contentEquals(cs.toString());
+                    if (!ok) {
+                        err = "内容不一致";
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            err = t.getClass().getSimpleName() + ": " + t.getMessage();
+        }
+        if (!ok) {
+            showCopyFallback(text, err);
+            return;
+        }
         lastCopied = text;
         Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show();
         handler.removeCallbacks(clearClipboard);
         // 30 秒后自动清空剪贴板，降低被其他应用读取的窗口期
         handler.postDelayed(clearClipboard, 30000L);
+    }
+
+    /** 复制失败时的兜底：把内容显示成可选中的文本，至少能看、能手抄。 */
+    private void showCopyFallback(String text, String err) {
+        float density = getResources().getDisplayMetrics().density;
+        int pad = (int) (16 * density);
+        TextView tv = new TextView(this);
+        tv.setText(text);
+        tv.setTextSize(22f);
+        tv.setTypeface(Typeface.MONOSPACE);
+        tv.setTextIsSelectable(true);
+        tv.setPadding(pad, pad / 2, pad, 0);
+
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.copy_failed_title)
+                .setMessage(getString(R.string.copy_failed_msg, err))
+                .setView(tv)
+                .setPositiveButton(R.string.confirm, null)
+                .show();
     }
 
     private void confirmDelete() {

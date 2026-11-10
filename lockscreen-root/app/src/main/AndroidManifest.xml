@@ -65,6 +65,11 @@
             android:name=".ui.AccessibilityActivity"
             android:exported="false" />
 
+        <!-- 诊断：把 root / 剪贴板 / 无障碍的实际状态导出成文本 -->
+        <activity
+            android:name=".ui.DiagnosticsActivity"
+            android:exported="false" />
+
         <!-- 自带剪贴板：系统无复制/粘贴 UI 时使用 -->
         <activity
             android:name=".ui.ClipboardActivity"
