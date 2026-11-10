@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="@dimen/screen_padding">
+
+    <TextClock
+        android:id="@+id/clock"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:format12Hour="h:mm"
+        android:format24Hour="HH:mm"
+        android:textColor="#FFFFFFFF"
+        android:textSize="@dimen/clock_mode_text" />
+
+    <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textColor="#99FFFFFF"
+        android:textSize="@dimen/date_text" />
+
+    <TextView
+        android:id="@+id/tv_hint"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:alpha="0.35"
+        android:text="@string/clock_hint"
+        android:textColor="#FFFFFFFF"
+        android:textSize="@dimen/hint_text" />
+</LinearLayout>

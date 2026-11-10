@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="@android:style/Theme.DeviceDefault.Light" />
+
+    <style name="CodeText">
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:textColor">#FF111111</item>
+        <item name="android:textSize">@dimen/code_text</item>
+    </style>
+
+    <style name="Label">
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">#FF666666</item>
+    </style>
+</resources>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="type_labels">
+        <item>TOTP（基于时间）</item>
+        <item>HOTP（基于计数器）</item>
+    </string-array>
+
+    <string-array name="algo_labels">
+        <item>SHA1</item>
+        <item>SHA256</item>
+        <item>SHA512</item>
+    </string-array>
+
+    <string-array name="digits_labels">
+        <item>6 位</item>
+        <item>8 位</item>
+    </string-array>
+</resources>

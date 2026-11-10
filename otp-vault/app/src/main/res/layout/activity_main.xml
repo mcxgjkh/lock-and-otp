@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- 手表没有菜单键：极小屏上显示这排按钮，手机上隐藏并沿用右上角菜单 -->
+    <LinearLayout
+        android:id="@+id/quick_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingLeft="4dp"
+        android:paddingTop="4dp"
+        android:paddingRight="4dp"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btn_add"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:text="@string/quick_add"
+            android:textSize="@dimen/msg_text" />
+
+        <Button
+            android:id="@+id/btn_import"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:text="@string/quick_import"
+            android:textSize="@dimen/msg_text" />
+
+        <Button
+            android:id="@+id/btn_export"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:text="@string/quick_export"
+            android:textSize="@dimen/msg_text" />
+
+        <Button
+            android:id="@+id/btn_settings"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:minWidth="0dp"
+            android:text="@string/quick_settings"
+            android:textSize="@dimen/msg_text" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:divider="#22000000"
+            android:dividerHeight="1dp"
+            android:scrollbarStyle="outsideOverlay" />
+
+        <TextView
+            android:id="@+id/empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:padding="16dp"
+            android:text="@string/empty_list"
+            android:textColor="#FF888888"
+            android:textSize="@dimen/msg_text"
+            android:visibility="gone" />
+    </FrameLayout>
+</LinearLayout>

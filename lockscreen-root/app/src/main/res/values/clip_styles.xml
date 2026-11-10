@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Label">
+        <item name="android:textSize">@dimen/msg_text</item>
+        <item name="android:textColor">#FF888888</item>
+    </style>
+</resources>

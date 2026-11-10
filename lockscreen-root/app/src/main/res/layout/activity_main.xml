@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/app_name"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tv_cred_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/tv_root_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_lock_now"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/btn_lock_now" />
+
+        <Button
+            android:id="@+id/btn_set_pin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_set_pin" />
+
+        <Button
+            android:id="@+id/btn_set_pattern"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_set_pattern" />
+
+        <Button
+            android:id="@+id/btn_clock_pin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_clock_pin" />
+
+        <CheckBox
+            android:id="@+id/cb_clock_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cb_clock_hint" />
+
+        <CheckBox
+            android:id="@+id/cb_fast_keys"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cb_fast_keys" />
+
+        <Button
+            android:id="@+id/btn_check_root"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_check_root" />
+
+        <CheckBox
+            android:id="@+id/cb_notify"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/opt_notify" />
+
+        <CheckBox
+            android:id="@+id/cb_strict"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/opt_strict" />
+
+        <CheckBox
+            android:id="@+id/cb_persist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/opt_persist" />
+
+        <Button
+            android:id="@+id/btn_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_overlay" />
+
+        <Button
+            android:id="@+id/btn_accessibility"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_accessibility" />
+
+        <CheckBox
+            android:id="@+id/cb_clip_monitor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/cb_clip_monitor" />
+
+        <Button
+            android:id="@+id/btn_clipboard"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_clipboard" />
+
+        <CheckBox
+            android:id="@+id/cb_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_overlay_ball" />
+
+        <Button
+            android:id="@+id/btn_overlay_mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_overlay_mode" />
+
+        <Button
+            android:id="@+id/btn_shape"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_shape" />
+
+        <Button
+            android:id="@+id/btn_admin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_admin" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:text="@string/hint_widget"
+            android:textSize="13sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="@string/hint_cred"
+            android:textSize="13sp" />
+    </LinearLayout>
+</ScrollView>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 手机档 -->
+    <dimen name="screen_padding">20dp</dimen>
+    <dimen name="row_padding">16dp</dimen>
+    <dimen name="code_text">22sp</dimen>
+    <dimen name="big_code_text">42sp</dimen>
+    <dimen name="title_text">16sp</dimen>
+    <dimen name="sub_text">12sp</dimen>
+    <dimen name="msg_text">13sp</dimen>
+    <dimen name="progress_width">140dp</dimen>
+</resources>

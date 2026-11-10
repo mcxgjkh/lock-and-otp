@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+      刻意不申请任何权限：
+      · 无 INTERNET —— 验证码纯本地计算，密钥物理上不可能被外传；
+      · 无存储权限 —— 导出走 Storage Access Framework（ACTION_CREATE_DOCUMENT，API19+）；
+      · 无相机权限 —— 不扫码，避免引入摄像头库与相应耗电。
+    -->
+
+    <application
+        android:allowBackup="false"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.DetailActivity"
+            android:exported="false"
+            android:parentActivityName=".ui.MainActivity" />
+
+        <activity
+            android:name=".ui.EditActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
+            android:name=".ui.PinActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+    </application>
+</manifest>

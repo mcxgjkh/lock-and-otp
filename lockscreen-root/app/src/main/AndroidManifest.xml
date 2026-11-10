@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- 验证通过后解除系统锁屏（API19 仍生效的旧接口） -->
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
+    <!-- 错误抖动反馈 -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!--
+      SYSTEM_ALERT_WINDOW 仅用于两件事：
+      1) Android 10+ 的后台启动 Activity 豁免（否则小组件/通知栏点击无法拉起锁屏界面）；
+      2) 极少数 ROM 上 FLAG_SHOW_WHEN_LOCKED 失效时以悬浮窗作为兜底。
+      与无障碍服务无关。
+    -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- 悬浮球是唯一的前台服务；Android 9 起需要显式声明 -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- 仅用于开机还原超级省电（关掉的 Wi-Fi / 亮度 / 动画） -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <application
+        android:allowBackup="false"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:theme="@style/AppTheme">
+
+        <activity
+            android:name=".ui.MainActivity"
+            android:exported="true"
+            android:launchMode="singleTop">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".ui.SetupActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <!-- 时钟模式：盖在系统锁屏之上，只显示时间；不解除 keyguard，因此 Home/最近任务进不去 -->
+        <activity
+            android:name=".ui.ClockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:taskAffinity="com.mcxgjkh.lockscreen.lock"
+            android:theme="@style/LockTheme" />
+
+        <!--
+          锁屏界面：独立任务栈 + singleInstance，避免被“最近任务”看到或误切走；
+          FLAG_SHOW_WHEN_LOCKED 在代码里设置（XML 的 showOnLockScreen 是隐藏属性）。
+        -->
+        <activity
+            android:name=".ui.LockScreenActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:taskAffinity="com.mcxgjkh.lockscreen.lock"
+            android:theme="@style/LockTheme" />
+
+        <activity
+            android:name=".ui.AccessibilityActivity"
+            android:exported="false" />
+
+        <!-- 自带剪贴板：系统无复制/粘贴 UI 时使用 -->
+        <activity
+            android:name=".ui.ClipboardActivity"
+            android:exported="false" />
+
+        <!-- 剪贴板接管：常驻监听系统剪贴板变化 -->
+        <service
+            android:name=".service.ClipMonitorService"
+            android:exported="false" />
+
+        <!-- 悬浮球：用户显式开启才运行，关闭开关即停止 -->
+        <service
+            android:name=".service.OverlayService"
+            android:exported="false" />
+
+        <!-- 开机还原超级省电：平时是空广播，不启服务 -->
+        <receiver
+            android:name=".receiver.BootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- 小组件 / 通知栏按钮的统一入口：只负责拉起锁屏界面，不持锁、不常驻 -->
+        <receiver
+            android:name=".receiver.LockReceiver"
+            android:exported="false" />
+
+        <receiver
+            android:name=".widget.LockWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_lock_info" />
+        </receiver>
+
+        <!-- 设备管理器：仅用于 Root 不可用时的 lockNow() 降级，不申请任何擦除/加密权限 -->
+        <receiver
+            android:name=".LockAdminReceiver"
+            android:exported="true"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin" />
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+</manifest>

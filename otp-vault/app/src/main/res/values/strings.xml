@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">authenticator</string>
+
+    <string name="empty_list">还没有账户\n点右上角菜单「添加账户」，或粘贴 otpauth:// 链接批量导入</string>
+    <string name="add">添加账户</string>
+    <string name="import_uri">粘贴导入</string>
+    <string name="export">导出全部密钥</string>
+    <string name="settings">设置</string>
+    <string name="delete">删除</string>
+    <string name="edit">编辑</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确定</string>
+    <string name="save">保存</string>
+    <string name="copy">复制</string>
+    <string name="copied">已复制</string>
+    <string name="filled">已填充</string>
+
+    <string name="hint_issuer">发行方（如 GitHub）</string>
+    <string name="hint_account">账户名（如 you@example.com）</string>
+    <string name="hint_secret">密钥（Base32，可含空格）</string>
+    <string name="label_type">类型</string>
+    <string name="label_algo">算法</string>
+    <string name="label_digits">位数</string>
+    <string name="label_period">周期（秒）</string>
+    <string name="label_counter">计数器</string>
+    <string name="btn_paste_uri">从 otpauth:// 链接填充</string>
+    <string name="err_secret">密钥无效，请检查 Base32 内容</string>
+    <string name="err_account">账户名不能为空</string>
+    <string name="err_number">请输入有效数字</string>
+
+    <string name="detail_title">账户详情</string>
+    <string name="secret_label">原始密钥（Base32）</string>
+    <string name="secret_hidden">••••••••••••••••</string>
+    <string name="show_secret">显示密钥</string>
+    <string name="hide_secret">隐藏密钥</string>
+    <string name="copy_secret">复制密钥</string>
+    <string name="copy_code">复制验证码</string>
+    <string name="uri_label">otpauth 链接</string>
+    <string name="next_code">生成下一个（HOTP）</string>
+    <string name="deleted">已删除</string>
+    <string name="delete_confirm">确认删除该账户？</string>
+    <string name="secret_warn">密钥等价于账户的第二因素，请勿截图外传。</string>
+
+    <string name="export_title">导出全部密钥</string>
+    <string name="export_json">JSON（含全部字段）</string>
+    <string name="export_csv">CSV（可用 Excel 打开）</string>
+    <string name="export_uri">otpauth 链接（可被其他验证器导入）</string>
+    <string name="export_clipboard">复制到剪贴板</string>
+    <string name="export_warn">导出内容为明文密钥，导出后请妥善保管，用完建议删除文件。</string>
+    <string name="export_done">已导出</string>
+    <string name="export_fail">导出失败</string>
+    <string name="export_empty">还没有账户可导出</string>
+
+    <string name="pin_title">应用已加锁</string>
+    <string name="pin_set_title">设置访问 PIN</string>
+    <string name="pin_hint">请输入 4–8 位 PIN</string>
+    <string name="pin_wrong">PIN 错误</string>
+    <string name="pin_set_done">PIN 已设置</string>
+    <string name="pin_disabled">PIN 已关闭</string>
+    <string name="pin_enable">开启 / 修改访问 PIN</string>
+    <string name="pin_disable">关闭访问 PIN</string>
+
+    <string name="settings_title">设置</string>
+    <string name="settings_offset">时间校准（秒）：%1$d</string>
+    <string name="settings_offset_hint">验证码对不上时，用这里手动补偿系统时间偏差（不联网校时）。</string>
+    <string name="settings_clear_pin">关闭访问 PIN</string>
+    <string name="settings_pin_on">访问 PIN：已开启</string>
+    <string name="settings_pin_off">访问 PIN：未开启</string>
+    <string name="settings_about">本应用不联网、不申请存储/相机权限；密钥以 AES-256-CBC + HMAC-SHA256 加密后存于应用私有目录，主密钥由 AndroidKeyStore 包裹。</string>
+
+    <string name="paste_title">粘贴 otpauth 链接</string>
+    <string name="paste_hint">每行一个链接，可一次导入多个</string>
+    <string name="imported">已导入 %1$d 个账户</string>
+    <string name="import_none">没有识别到有效的 otpauth 链接</string>
+
+    <string name="shape_title">屏幕形状</string>
+    <string name="shape_auto">自动</string>
+    <string name="shape_square">方形</string>
+    <string name="shape_round">圆形</string>
+    <string name="export_no_picker">当前系统没有文件选择器，已复制到剪贴板</string>
+    <string name="quick_add">添加</string>
+    <string name="quick_import">导入</string>
+    <string name="quick_export">导出</string>
+    <string name="quick_settings">设置</string>
+
+    <string name="meta_format">类型：%1$s · 算法：%2$s · %3$d 位 · %4$s</string>
+    <string name="meta_totp_period">%1$d 秒</string>
+    <string name="meta_hotp_counter">计数器 #%1$d</string>
+    <string name="algo_probe">试算三种算法</string>
+    <string name="algo_probe_title">算法试算（同一时间步）</string>
+    <string name="algo_probe_hint">哪一行与服务端/其他验证器一致，就把算法改成哪一个。密钥本身不包含算法信息，只能这样比对。</string>
+    <string name="algo_probe_remain">本组剩余 %1$d 秒（跨周期后请重开本窗口）</string>
+    <string name="algo_current">当前</string>
+    <string name="algo_hint">不知道算法就保持 SHA1（绝大多数服务）；对不上时到详情页用「试算三种算法」比对。</string>
+    <string name="import_menu">导入</string>
+    <string name="import_choose">选择导入方式</string>
+    <string name="import_from_json">从 JSON 文件导入</string>
+    <string name="import_from_uri">从 otpauth 链接导入</string>
+    <string name="import_no_picker">当前系统没有文件选择器，请改用 otpauth 链接导入</string>
+    <string name="import_file_fail">文件读取失败，请确认是可读的 JSON 文件</string>
+    <string name="import_migration">检测到 Google Authenticator 迁移包，暂不支持，请改用 otpauth 链接</string>
+    <string name="export_to_file">导出 JSON 文件</string>
+    <string name="export_json_msg">将把 %1$d 个账户导出为一个 JSON 文件。</string>
+</resources>

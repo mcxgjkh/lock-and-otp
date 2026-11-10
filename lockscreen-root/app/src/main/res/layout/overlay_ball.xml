@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 只放悬浮球；功能面板是独立窗口，居中显示，避免被屏幕边缘裁掉 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/overlay_root"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <com.mcxgjkh.lockscreen.view.FloatingBallView
+        android:id="@+id/ball"
+        android:layout_width="@dimen/overlay_ball"
+        android:layout_height="@dimen/overlay_ball" />
+</FrameLayout>

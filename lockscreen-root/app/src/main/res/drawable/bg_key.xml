@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 数字键背景：圆角矩形（原来是 oval，行高小于键宽时会被压成扁椭圆，看着"瘪"） -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#59FFFFFF" />
+            <corners android:radius="@dimen/key_radius" />
+            <stroke
+                android:width="1dp"
+                android:color="#40FFFFFF" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#1FFFFFFF" />
+            <corners android:radius="@dimen/key_radius" />
+        </shape>
+    </item>
+</selector>

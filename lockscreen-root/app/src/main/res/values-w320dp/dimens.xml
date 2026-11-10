@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 手机档：可用宽度 >= 320dp -->
+    <dimen name="screen_padding">24dp</dimen>
+    <dimen name="clock_text">52sp</dimen>
+    <dimen name="date_text">14sp</dimen>
+    <dimen name="msg_text">14sp</dimen>
+    <dimen name="hint_text">12sp</dimen>
+    <dimen name="key_height">60dp</dimen>
+    <dimen name="key_text">23sp</dimen>
+    <dimen name="pattern_size">280dp</dimen>
+    <dimen name="row_padding">16dp</dimen>
+    <dimen name="overlay_ball">48dp</dimen>
+    <dimen name="overlay_btn">48dp</dimen>
+    <dimen name="overlay_text">13sp</dimen>
+    <dimen name="clock_mode_text">76sp</dimen>
+    <dimen name="key_radius">18dp</dimen>
+    <dimen name="key_margin">6dp</dimen>
+</resources>

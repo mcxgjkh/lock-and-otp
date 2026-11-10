@@ -1,0 +1,40 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.mcxgjkh.lockscreen'
+    compileSdk 34
+    buildToolsVersion '36.0.0'
+
+    defaultConfig {
+        applicationId "com.mcxgjkh.lockscreen"
+        minSdkVersion 19          // Android 4.4
+        targetSdkVersion 28       // 保持 API19 时代的运行时语义（后台启动 Activity / 通知 / 权限）
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+// 刻意不引入任何第三方依赖：体积 < 120KB、无多 dex、无后台线程池/初始化框架
+dependencies {
+}

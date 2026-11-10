@@ -1,0 +1,23 @@
+# Gradle / Android 构建产物
+**/build/
+.gradle/
+local.properties
+*.iml
+.idea/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 签名与密钥（切勿入库）
+*.jks
+*.keystore
+keystore.properties
+
+# 构建中间产物（dist/ 下的预编译 APK 例外）
+*.apk
+*.aab
+!dist/*.apk
+
+# 系统垃圾
+.DS_Store
+Thumbs.db

@@ -1,0 +1,3 @@
+-keep class com.mcxgjkh.otpvault.data.** { *; }
+-keep class com.mcxgjkh.otpvault.otp.** { *; }
+-keep public class * extends android.app.Activity

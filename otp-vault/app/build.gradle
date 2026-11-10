@@ -1,0 +1,41 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.mcxgjkh.otpvault'
+    compileSdk 34
+    buildToolsVersion '36.0.0'
+
+    defaultConfig {
+        applicationId "com.mcxgjkh.otpvault"
+        minSdkVersion 19          // Android 4.4
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0.0"
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    lint {
+        abortOnError false
+        checkReleaseBuilds false
+    }
+}
+
+// 零第三方依赖：无网络库、无二维码库、无 AndroidX。
+// 因此清单里连 INTERNET 权限都不需要申请，离线可用且无法外传密钥。
+dependencies {
+}

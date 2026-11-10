@@ -1,0 +1,2 @@
+rootProject.name = 'OtpVault'
+include ':app'

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">锁屏</string>
+    <string name="lock_title">已锁定</string>
+    <string name="unlock">解锁</string>
+    <string name="delete">删除</string>
+    <string name="enter_pin">输入数字密码</string>
+    <string name="draw_pattern">绘制解锁图案</string>
+    <string name="pin_wrong">密码错误</string>
+    <string name="pattern_wrong">图案错误</string>
+    <string name="too_many_try">尝试次数过多，请等待 %1$d 秒</string>
+    <string name="left_try">还可尝试 %1$d 次</string>
+    <string name="setup_first">请先在主界面设置解锁密码或图案</string>
+    <string name="need_cred">请先设置解锁密码或图案</string>
+    <string name="cannot_start">无法拉起锁屏界面，请检查悬浮窗权限</string>
+
+    <string name="cred_none">未设置（无法解锁，请先设置凭证）</string>
+    <string name="cred_pin">数字密码</string>
+    <string name="cred_pattern">图案</string>
+
+    <string name="s_root_unknown">未检测</string>
+    <string name="s_root_ok">已授权</string>
+    <string name="s_root_no">不可用</string>
+
+    <string name="btn_set_pin">设置 / 修改数字密码</string>
+    <string name="btn_set_pattern">设置 / 修改解锁图案</string>
+    <string name="btn_lock_now">立即锁屏</string>
+    <string name="btn_check_root">检测 Root 权限</string>
+    <string name="btn_overlay">授予“显示在其他应用上层”</string>
+    <string name="btn_admin">启用设备管理器（无 Root 降级锁屏）</string>
+
+    <string name="opt_notify">通知栏常驻“立即锁屏”按钮</string>
+    <string name="opt_strict">严格模式：切走即重新锁定</string>
+    <string name="opt_persist">常驻 su 会话（解锁响应更快）</string>
+
+    <string name="hint_widget">把“八哥锁屏”小组件放到桌面，点一下即可锁屏；无需任何后台常驻。</string>
+    <string name="hint_cred">凭证只保存加盐 PBKDF2 哈希，不保存明文。</string>
+
+    <string name="setup_pin_title">设置数字密码</string>
+    <string name="setup_pattern_title">绘制解锁图案</string>
+    <string name="setup_pin_hint">请输入 4–12 位数字</string>
+    <string name="setup_pattern_hint">至少连接 4 个点</string>
+    <string name="setup_repeat">请再次输入以确认</string>
+    <string name="setup_mismatch">两次输入不一致，请重来</string>
+    <string name="setup_too_short">长度不足</string>
+    <string name="setup_done">已保存</string>
+    <string name="cancel">取消</string>
+    <string name="confirm">确认</string>
+    <string name="next">下一步</string>
+    <string name="clear">重画</string>
+
+    <string name="lock_locked">屏幕已锁定</string>
+    <string name="lock_failed">锁屏失败：请检查 Root 或设备管理器授权</string>
+    <string name="root_checking">正在检测…</string>
+
+    <string name="notif_channel">锁屏快捷入口</string>
+    <string name="notif_title">锁屏</string>
+    <string name="notif_text">点击立即锁定屏幕</string>
+
+    <string name="widget_label">立即锁屏</string>
+    <string name="widget_short">锁屏</string>
+    <string name="admin_desc">Root 不可用时，通过系统设备管理器锁定屏幕。不涉及数据擦除。</string>
+
+    <!-- 无障碍管理 -->
+    <string name="btn_accessibility">无障碍服务管理</string>
+    <string name="acc_title">无障碍服务</string>
+    <string name="acc_tip">需要 Root。开关直接写入系统安全设置，等同于系统「无障碍」页里的开关，适用于没有无障碍管理界面的手机/手表。</string>
+    <string name="acc_empty">没有检测到已安装的无障碍服务</string>
+    <string name="acc_enable_confirm">允许「%1$s」读取屏幕内容并模拟操作？\n请确认该服务来源可信。</string>
+    <string name="acc_apply_failed">写入失败：请确认已授予 Root 权限</string>
+    <string name="acc_sys">打开系统无障碍设置</string>
+    <string name="acc_no_settings">当前设备没有系统无障碍页面</string>
+    <string name="acc_state_on">已启用</string>
+    <string name="acc_state_off">未启用</string>
+
+    <!-- 悬浮球 -->
+    <string name="btn_overlay_ball">悬浮球（返回/主页/最近任务）</string>
+    <string name="overlay_started">悬浮球已开启</string>
+    <string name="overlay_stopped">悬浮球已关闭</string>
+    <string name="overlay_need_permission">请先授予「显示在其他应用上层」权限</string>
+    <string name="overlay_running">悬浮球运行中</string>
+    <string name="overlay_stop">关闭悬浮球</string>
+    <string name="ov_back">返回</string>
+    <string name="ov_home">主页</string>
+    <string name="ov_recents">任务</string>
+    <string name="ov_lock">锁屏</string>
+    <string name="ov_notify">通知</string>
+    <string name="ov_close">收起</string>
+    <string name="ov_failed">操作失败：请检查 Root</string>
+
+    <!-- 屏幕形状 -->
+    <string name="btn_shape">屏幕形状：%1$s</string>
+    <string name="shape_title">屏幕形状</string>
+    <string name="shape_auto">自动</string>
+    <string name="shape_square">方形</string>
+    <string name="shape_round">圆形</string>
+
+    <!-- 双密码 / 时钟模式 -->
+    <string name="btn_clock_pin">时钟密码（第二密码）</string>
+    <string name="clock_pin_none">时钟密码：未设置</string>
+    <string name="clock_pin_on">时钟密码：已设置</string>
+    <string name="clock_pin_edit">修改时钟密码</string>
+    <string name="clock_pin_clear">关闭时钟密码</string>
+    <string name="clock_pin_cleared">已关闭时钟密码</string>
+    <string name="setup_clock_title">设置时钟密码</string>
+    <string name="setup_clock_hint">4–12 位数字，且不能与主密码相同；输入它只会进入只显示时间的界面</string>
+    <string name="setup_clock_same">不能与主密码相同</string>
+    <string name="switch_to_pin">输入密码</string>
+    <string name="switch_to_pattern">使用图案</string>
+    <string name="clock_hint">长按时间返回解锁</string>
+
+    <!-- 悬浮球模式 -->
+    <string name="btn_overlay_mode">悬浮球模式：%1$s</string>
+    <string name="overlay_mode_title">悬浮球模式</string>
+    <string name="overlay_mode_full">全能模式（返回/主页/任务/通知/锁屏）</string>
+    <string name="overlay_mode_eco">超级省电（全系统：关后台/断网/降亮度）</string>
+    <string name="overlay_eco_short">超级省电中</string>
+    <string name="mode_full_short">全能</string>
+    <string name="mode_eco_short">超级省电</string>
+
+    <string name="eco_confirm_title">进入超级省电？</string>
+    <string name="eco_confirm_msg">将执行：系统电池省电模式、关闭 Wi-Fi / 蓝牙 / 移动数据、结束后台进程、降低屏幕亮度、关闭系统动画。\n退出时会按进入前的状态还原（网络只恢复原本开着的）。</string>
+    <string name="eco_enabled">已进入超级省电</string>
+    <string name="eco_disabled">已退出超级省电，设置已还原</string>
+    <string name="eco_need_root">需要 Root 才能切换系统级省电</string>
+    <string name="eco_active">超级省电中 · 点击恢复</string>
+    <string name="eco_restore">恢复</string>
+    <string name="eco_state_short">省电中</string>
+    <string name="cb_fast_keys">极速按键（Root 直注入，不生效自动回退）</string>
+    <string name="cb_clock_hint">时钟界面显示“长按返回”提示（默认隐藏）</string>
+
+    <!-- 剪贴板 -->
+    <string name="btn_clipboard">剪贴板管理</string>
+    <string name="clip_title">剪贴板</string>
+    <string name="clip_current">当前内容（本应用自带的剪贴板）</string>
+    <string name="clip_empty">（空）</string>
+    <string name="clip_hint">输入文字，或点下面的历史条目</string>
+    <string name="clip_set">复制到剪贴板</string>
+    <string name="clip_read">读取系统剪贴板</string>
+    <string name="clip_history">历史（最多 30 条，长按删除）</string>
+    <string name="clip_clear">清空历史</string>
+    <string name="clip_copied">已复制到剪贴板</string>
+    <string name="clip_cleared">历史已清空</string>
+    <string name="clip_paste_fail">粘贴失败：系统不支持注入，可先复制到剪贴板</string>
+    <string name="ov_paste">粘贴</string>
+    <string name="ov_clip">剪贴</string>
+
+    <string name="cb_clip_monitor">接管系统剪贴板（常驻监听所有复制）</string>
+    <string name="clip_monitor_running">剪贴板接管中</string>
+    <string name="clip_monitor_desc">其他应用复制的内容会进入本应用</string>
+    <string name="clip_monitor_stop">关闭接管</string>
+    <string name="clip_status_on">接管：已开启（其他应用复制的内容会出现在下面）</string>
+    <string name="clip_status_off">接管：未开启（请在主页开启「接管系统剪贴板」）</string>
+    <string name="clip_saved_local">系统剪贴板不可写，已存入本应用</string>
+    <string name="clip_read_none">系统剪贴板是空的，或当前 ROM 不允许读取</string>
+    <string name="clip_status_stats">%1$s · 已捕获 %2$d 次</string>
+    <string name="clip_refresh_root">Root 读取</string>
+    <string name="acc_all">显示全部应用的服务（含未声明无障碍权限的）</string>
+    <string name="acc_all_tip">已切换为「全部应用的服务」。未声明 BIND_ACCESSIBILITY_SERVICE 的服务系统会拒绝绑定。</string>
+    <string name="acc_no_perm_title">未声明无障碍权限</string>
+    <string name="acc_no_perm_msg">「%1$s」没有在清单里声明 BIND_ACCESSIBILITY_SERVICE 权限，系统会拒绝绑定，启用后通常不会生效。仍要写入吗？</string>
+    <string name="acc_try_anyway">仍要写入</string>
+    <string name="acc_manual">手动添加组件</string>
+    <string name="acc_manual_hint">com.example.app/.MyAccessibilityService</string>
+    <string name="acc_manual_bad">组件名格式不对，应形如 com.example.app/.Service</string>
+    <string name="acc_manual_done">已写入组件</string>
+    <string name="acc_count">共 %1$d 个服务，已启用 %2$d 个</string>
+</resources>
