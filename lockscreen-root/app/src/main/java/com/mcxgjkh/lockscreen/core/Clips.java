@@ -185,6 +185,15 @@ public final class Clips {
 
     // ------------------------------------------------------------ 粘贴
 
+    /** 指定内容粘贴：先记为当前内容，再注入焦点输入框。 */
+    public static boolean pasteText(Context ctx, String text) {
+        if (text == null || text.length() == 0) {
+            return false;
+        }
+        setLocal(ctx, text);
+        return pasteIntoFocused(ctx);
+    }
+
     /**
      * 把"当前内容"粘贴到系统焦点输入框。
      * 返回 false 表示当前系统/内容不支持直接注入（调用方提示用户）。

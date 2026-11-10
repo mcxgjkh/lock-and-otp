@@ -175,4 +175,7 @@
     <string name="acc_not_accepted_title">设置已写入，但系统没有接受</string>
     <string name="acc_not_accepted_msg">设置项已经写进去，但系统的无障碍管理器没有把这个服务加入已启用列表，所以目标应用自己检测不到权限。\n\n常见原因：\n1) 该服务没声明 BIND_ACCESSIBILITY_SERVICE；\n2) 该服务未导出（exported=false）；\n3) ROM 有自己的无障碍白名单；\n4) 它不是标准 AccessibilityService。\n\n可以先重启设备再看；仍然不行就只能换该应用的版本。\n\n—— 详细 ——\n%1$s</string>
     <string name="acc_pending">已写入·系统未启用</string>
+    <string name="ov_clip_title">剪贴板（点一条直接粘贴）</string>
+    <string name="ov_clip_empty">剪贴板是空的\n先在「剪贴板管理」里存一条</string>
+    <string name="ov_paste_fail">粘贴失败：目标应用不接受注入</string>
 </resources>

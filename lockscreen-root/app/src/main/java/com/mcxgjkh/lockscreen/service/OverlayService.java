@@ -17,6 +17,7 @@ import android.os.Looper;
 import android.os.SystemClock;
 import android.provider.Settings;
 import android.util.Log;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -26,6 +27,7 @@ import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,6 +43,8 @@ import com.mcxgjkh.lockscreen.core.WatchUi;
 import com.mcxgjkh.lockscreen.ui.ClipboardActivity;
 import com.mcxgjkh.lockscreen.ui.LockScreenActivity;
 import com.mcxgjkh.lockscreen.ui.MainActivity;
+
+import java.util.List;
 
 /**
  * 系统级悬浮球 + 功能面板（返回 / 主页 / 最近任务 / 通知栏 / 锁屏）。
@@ -81,6 +85,9 @@ public class OverlayService extends Service {
 
     private boolean expanded;
     private boolean eco;
+    /** 悬浮剪贴板面板（与动作面板互斥）。 */
+    private View clipView;
+    private LinearLayout clipList;
     private int ballSize;
     private int slop;
 
@@ -108,6 +115,7 @@ public class OverlayService extends Service {
         public void onReceive(Context context, Intent intent) {
             if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())) {
                 hidePanel();
+                hideClipPanel();
             }
         }
     };
@@ -212,6 +220,7 @@ public class OverlayService extends Service {
         } catch (Throwable ignored) {
             // 未注册或已注销
         }
+        hideClipPanel();
         FastKeys.close();
         stopForeground(true);
         super.onDestroy();
@@ -366,6 +375,7 @@ public class OverlayService extends Service {
     }
 
     private void showPanel() {
+        hideClipPanel();
         if (panelView == null) {
             panelView = buildPanel();
         }
@@ -406,6 +416,175 @@ public class OverlayService extends Service {
         expanded = false;
     }
 
+    // ------------------------------------------------------------ 悬浮剪贴板
+
+    private boolean showClipPanelOnMain() {
+        handler.post(new Runnable() {
+            @Override
+            public void run() {
+                showClipPanel();
+            }
+        });
+        return true;
+    }
+
+    /**
+     * 悬浮剪贴板：独立窗口、不获取输入焦点（FLAG_NOT_FOCUSABLE），
+     * 所以点条目时焦点仍在下面的应用里，注入才能打进那个输入框。
+     */
+    private void showClipPanel() {
+        hidePanel();
+        if (clipView == null) {
+            clipView = buildClipPanel();
+        }
+        fillClipItems();
+        if (clipView.getParent() != null) {
+            return;
+        }
+        int type = Build.VERSION.SDK_INT >= 26
+                ? WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                : WindowManager.LayoutParams.TYPE_SYSTEM_ALERT;
+        int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                | WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+                | WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN;
+        boolean compact = WatchUi.isCompact(this);
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams(
+                dp(compact ? 210 : 255),
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                type, flags, PixelFormat.TRANSLUCENT);
+        lp.gravity = Gravity.CENTER;
+        try {
+            wm.addView(clipView, lp);
+        } catch (Throwable ignored) {
+            // 权限被回收
+        }
+    }
+
+    private void hideClipPanel() {
+        if (clipView != null && clipView.getParent() != null && wm != null) {
+            try {
+                wm.removeView(clipView);
+            } catch (Throwable ignored) {
+                // 已经移除
+            }
+        }
+    }
+
+    private View buildClipPanel() {
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundResource(R.drawable.bg_panel);
+        int pad = dp(6);
+        root.setPadding(pad, pad, pad, pad);
+
+        TextView title = new TextView(this);
+        title.setText(R.string.ov_clip_title);
+        title.setTextColor(0xFFCCCCCC);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                getResources().getDimension(R.dimen.overlay_text));
+        title.setPadding(dp(4), 0, dp(4), dp(4));
+        root.addView(title, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        ScrollView sv = new ScrollView(this);
+        clipList = new LinearLayout(this);
+        clipList.setOrientation(LinearLayout.VERTICAL);
+        sv.addView(clipList, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        root.addView(sv, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView close = new TextView(this);
+        close.setText(R.string.ov_close);
+        close.setTextColor(0xFFFFFFFF);
+        close.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                getResources().getDimension(R.dimen.overlay_text));
+        close.setGravity(Gravity.CENTER);
+        close.setBackgroundResource(R.drawable.bg_overlay_btn);
+        close.setClickable(true);
+        close.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideClipPanel();
+            }
+        });
+        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, dp(38));
+        cp.setMargins(dp(3), dp(6), dp(3), dp(3));
+        root.addView(close, cp);
+        return root;
+    }
+
+    private void fillClipItems() {
+        if (clipList == null) {
+            return;
+        }
+        clipList.removeAllViews();
+        boolean compact = WatchUi.isCompact(this);
+        List<String> items = Clips.history(this);
+        String cur = Clips.current(this);
+        if (cur != null && cur.length() > 0) {
+            items.remove(cur);
+            items.add(0, cur);
+        }
+        int max = compact ? 5 : 7;
+        if (items.isEmpty()) {
+            TextView empty = new TextView(this);
+            empty.setText(R.string.ov_clip_empty);
+            empty.setTextColor(0xFF999999);
+            empty.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                    getResources().getDimension(R.dimen.overlay_text));
+            empty.setPadding(dp(6), dp(8), dp(6), dp(8));
+            clipList.addView(empty);
+            return;
+        }
+        for (int i = 0; i < Math.min(items.size(), max); i++) {
+            clipList.addView(makeClipItem(items.get(i)));
+        }
+    }
+
+    private View makeClipItem(final String text) {
+        TextView t = new TextView(this);
+        String preview = text.replace('\n', ' ');
+        if (preview.length() > 60) {
+            preview = preview.substring(0, 60) + "…";
+        }
+        t.setText(preview);
+        t.setTextColor(0xFFFFFFFF);
+        t.setTextSize(TypedValue.COMPLEX_UNIT_PX,
+                getResources().getDimension(R.dimen.overlay_text));
+        t.setSingleLine(true);
+        t.setEllipsize(TextUtils.TruncateAt.END);
+        t.setGravity(Gravity.CENTER_VERTICAL);
+        t.setPadding(dp(10), dp(9), dp(10), dp(9));
+        t.setBackgroundResource(R.drawable.bg_overlay_btn);
+        t.setClickable(true);
+        t.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pasteText(text);
+            }
+        });
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(dp(3), dp(3), dp(3), dp(3));
+        t.setLayoutParams(lp);
+        return t;
+    }
+
+    /** 选中一条：写进本应用剪贴板并注入当前焦点输入框。 */
+    private void pasteText(final String text) {
+        hideClipPanel();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (!Clips.pasteText(getApplicationContext(), text)) {
+                    toast(R.string.ov_paste_fail);
+                }
+            }
+        }, "clip-paste").start();
+    }
+
     /** 按钮固定高度、按行列排布；手表 2 列 × 3 行，手机 1 列。 */
     private View buildPanel() {
         boolean compact = WatchUi.isCompact(this);
@@ -413,7 +592,7 @@ public class OverlayService extends Service {
         int btnH = compact ? dp(40) : getResources().getDimensionPixelSize(R.dimen.overlay_btn);
 
         int[] actions = eco
-                ? new int[]{ACT_BACK, ACT_HOME, ACT_LOCK, ACT_CLOSE}
+                ? new int[]{ACT_BACK, ACT_HOME, ACT_LOCK, ACT_PASTE, ACT_CLIP, ACT_CLOSE}
                 : new int[]{ACT_BACK, ACT_HOME, ACT_RECENTS, ACT_NOTIFY,
                         ACT_LOCK, ACT_PASTE, ACT_CLIP, ACT_CLOSE};
 
@@ -517,14 +696,7 @@ public class OverlayService extends Service {
                         errRes = R.string.clip_paste_fail;
                         break;
                     case ACT_CLIP:
-                        try {
-                            Intent clip = new Intent(OverlayService.this, ClipboardActivity.class);
-                            clip.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                            startActivity(clip);
-                            ok = true;
-                        } catch (Throwable t) {
-                            ok = false;
-                        }
+                        ok = showClipPanelOnMain();
                         break;
                     default:
                         ok = false;
